@@ -1,18 +1,33 @@
-# 🎀 GirlyStuff CRUD
+# 🎀 GirlyStuff - CRUD Elysia
 
-Toko aksesoris girly sederhana untuk tugas CRUD. Dibangun menggunakan **Bun**, **ElysiaJS**, **Drizzle ORM**, dan **SQLite**.
+Tugas CRUD toko aksesoris girly sederhana.
 
-## 🛠️ Tech Stack
+## Stack
 
-- **Runtime:** [Bun](https://bun.sh/)
-- **Framework:** [ElysiaJS](https://elysiajs.com/)
-- **Database ORM:** [Drizzle ORM](https://orm.drizzle.team/)
-- **Database:** SQLite
-- **Styling:** Tailwind CSS (CDN)
+- **Runtime:** Bun
+- **Framework:** ElysiaJS
+- **Database:** SQLite + Drizzle ORM
+- **Frontend:** HTML + Tailwind CSS (CDN)
 
-## 🚀 Cara Menjalankan
+## Cara Run
 
-1. **Install dependencies:**
-   ```bash
-   bun install
-   ```
+```bash
+# Install dependencies
+bun install
+
+# Setup database & seed data
+bun run src/db/seed.ts
+
+# Jalankan server
+bun run src/index.ts
+```
+
+Buka `http://localhost:3000` di browser.
+
+## Endpoints
+
+- `GET /api/products`
+- `GET /api/products/:id`
+- `POST /api/products`
+- `PUT /api/products/:id`
+- `DELETE /api/products/:id`
