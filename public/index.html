@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GirlyStuff 🎀 Aksesoris Perempuan</title>
+    <title>GirlyStuff 🎀 — Aksesoris</title>
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-pink-50 min-h-screen text-pink-950 font-sans">
@@ -11,7 +11,7 @@
     <!-- HEADER -->
     <header class="bg-gradient-to-r from-pink-400 to-fuchsia-400 text-white p-6 text-center shadow-md">
       <h1 class="text-3xl font-bold tracking-wide">🎀 GirlyStuff</h1>
-      <p class="text-pink-100 text-sm mt-1">Toko aksesoris girly - Tugas CRUD</p>
+      <p class="text-pink-100 text-sm mt-1">toko aksesoris girly — tugas CRUD</p>
     </header>
 
     <main class="max-w-5xl mx-auto p-4">
@@ -19,7 +19,7 @@
       <!-- FORM INPUT -->
       <form
         id="f"
-        class="bg-white rounded-2xl shadow-md p-5 grid gap-3 md:grid-cols-7 mb-6 border border-pink-100"
+        class="bg-white rounded-2xl shadow-md p-5 grid gap-3 md:grid-cols-6 mb-6 border border-pink-100"
       >
         <input
           id="nama"
@@ -27,18 +27,6 @@
           placeholder="nama produk"
           class="border border-pink-200 rounded-xl px-3 py-2 md:col-span-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
         />
-        
-        <select id="kategori" class="border border-pink-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-pink-400">
-          <option value="Jepit rambut">Jepit rambut</option>
-          <option value="Scrunchie">Scrunchie</option>
-          <option value="Kalung">Kalung</option>
-          <option value="Gelang">Gelang</option>
-          <option value="Anting">Anting</option>
-          <option value="Cincin">Cincin</option>
-          <option value="Tas mini">Tas mini</option>
-          <option value="Kaca">Kaca</option>
-        </select>
-
         <input
           id="harga"
           type="number"
@@ -63,7 +51,7 @@
         <input
           id="deskripsi"
           placeholder="deskripsi produk"
-          class="border border-pink-200 rounded-xl px-3 py-2 md:col-span-5 focus:outline-none focus:ring-2 focus:ring-pink-400"
+          class="border border-pink-200 rounded-xl px-3 py-2 md:col-span-4 focus:outline-none focus:ring-2 focus:ring-pink-400"
         />
         <button
           class="bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-xl px-4 py-2 md:col-span-2 transition-all shadow-sm"
@@ -96,8 +84,7 @@
       const f = document.getElementById("f");
       const btn = document.getElementById("btn");
 
-      // Konversi Mata Uang & Formatter
-      const KURS_EUR = 17000; // Asumsi 1 EUR = Rp 17.000
+      const KURS_EUR = 17000;
 
       function formatHarga(nilai) {
         const selectedCurrency = document.getElementById("currency") ? document.getElementById("currency").value : "IDR";
@@ -107,7 +94,6 @@
           return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(eurValue);
         }
         
-        // Default IDR
         return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(nilai);
       }
 
@@ -124,10 +110,7 @@
                 alt="${p.nama}"
               />
               <div class="p-4">
-                <span class="text-[10px] font-bold uppercase tracking-wider bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full">
-                  ${p.kategori}
-                </span>
-                <h3 class="font-bold text-pink-950 mt-1 text-base">${p.nama}</h3>
+                <h3 class="font-bold text-pink-950 text-base">${p.nama}</h3>
                 
                 <div class="flex items-center justify-between mt-2 mb-1">
                   <span class="text-sm font-extrabold text-pink-600">${formatHarga(p.harga)}</span>
@@ -153,7 +136,6 @@
         const p = await (await fetch("/api/products/" + id)).json();
         editId = id;
         nama.value = p.nama;
-        kategori.value = p.kategori;
         harga.value = p.harga;
         stok.value = p.stok;
         deskripsi.value = p.deskripsi || "";
@@ -172,7 +154,6 @@
         e.preventDefault();
         const body = {
           nama: nama.value,
-          kategori: kategori.value,
           harga: Number(harga.value),
           stok: Number(stok.value),
           deskripsi: deskripsi.value,
