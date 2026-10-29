@@ -98,38 +98,43 @@
       }
 
       async function load() {
-        const d = await (await fetch("/api/products")).json();
-        grid.innerHTML = d
-          .map(
-            (p) => `
-          <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
-            <div>
-              <img
-                src="${p.foto_url || "https://picsum.photos/seed/" + p.id + "/400/400"}"
-                class="h-44 w-full object-cover"
-                alt="${p.nama}"
-              />
-              <div class="p-4">
-                <h3 class="font-bold text-pink-950 text-base">${p.nama}</h3>
-                
-                <div class="flex items-center justify-between mt-2 mb-1">
-                  <span class="text-sm font-extrabold text-pink-600">${formatHarga(p.harga)}</span>
-                  <span class="text-xs text-gray-500 font-medium">stok: ${p.stok}</span>
-                </div>
+        try {
+          const res = await fetch("/api/products");
+          const d = await res.json();
+          grid.innerHTML = d
+            .map(
+              (p) => `
+            <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
+              <div>
+                <img
+                  src="${p.foto_url || "https://picsum.photos/seed/" + p.id + "/400/400"}"
+                  class="h-44 w-full object-cover"
+                  alt="${p.nama}"
+                />
+                <div class="p-4">
+                  <h3 class="font-bold text-pink-950 text-base">${p.nama}</h3>
+                  
+                  <div class="flex items-center justify-between mt-2 mb-1">
+                    <span class="text-sm font-extrabold text-pink-600">${formatHarga(p.harga)}</span>
+                    <span class="text-xs text-gray-500 font-medium">stok: ${p.stok}</span>
+                  </div>
 
-                <p class="text-xs text-gray-500 line-clamp-2 mt-1">${p.deskripsi || "-"}</p>
+                  <p class="text-xs text-gray-500 line-clamp-2 mt-1">${p.deskripsi || "-"}</p>
+                </div>
+              </div>
+
+              <div class="p-3 pt-0 flex gap-1.5">
+                <button onclick="edit(${p.id})" class="flex-1 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 text-xs font-semibold rounded-lg py-1.5 transition">edit</button>
+                <button onclick="del(${p.id})" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg py-1.5 transition">hapus</button>
+                <a href="/products/${p.id}" class="flex-1 bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-semibold rounded-lg py-1.5 text-center no-underline transition">detail</a>
               </div>
             </div>
-
-            <div class="p-3 pt-0 flex gap-1.5">
-              <button onclick="edit(${p.id})" class="flex-1 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 text-xs font-semibold rounded-lg py-1.5 transition">edit</button>
-              <button onclick="del(${p.id})" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg py-1.5 transition">hapus</button>
-              <a href="/products/${p.id}" class="flex-1 bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-semibold rounded-lg py-1.5 text-center no-underline transition">detail</a>
-            </div>
-          </div>
-        `
-          )
-          .join("");
+          `
+            )
+            .join("");
+        } catch (err) {
+          console.error("Gagal memuat produk:", err);
+        }
       }
 
       async function edit(id) {
@@ -154,16 +159,19 @@
         e.preventDefault();
         const body = {
           nama: nama.value,
+          kategori: "Aksesoris", // Default otomatis agar backend/database tidak menolak
           harga: Number(harga.value),
           stok: Number(stok.value),
           deskripsi: deskripsi.value,
           foto_url: foto_url.value,
         };
+        
         await fetch(editId ? "/api/products/" + editId : "/api/products", {
           method: editId ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
+
         editId = null;
         btn.textContent = "+ tambah";
         f.reset();
