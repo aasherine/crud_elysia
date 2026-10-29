@@ -1,184 +1,52 @@
-<!DOCTYPE html>
-<html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>GirlyStuff 🎀 — Aksesoris</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-pink-50 min-h-screen text-pink-950 font-sans">
-    
-    <!-- HEADER -->
-    <header class="bg-gradient-to-r from-pink-400 to-fuchsia-400 text-white p-6 text-center shadow-md">
-      <h1 class="text-3xl font-bold tracking-wide">🎀 GirlyStuff</h1>
-      <p class="text-pink-100 text-sm mt-1">toko aksesoris girly — tugas CRUD</p>
-    </header>
+import { Elysia, t } from "elysia";
+import { eq } from "drizzle-orm";
+import { db, products } from "./db";
 
-    <main class="max-w-5xl mx-auto p-4">
-      
-      <!-- FORM INPUT -->
-      <form
-        id="f"
-        class="bg-white rounded-2xl shadow-md p-5 grid gap-3 md:grid-cols-6 mb-6 border border-pink-100"
-      >
-        <input
-          id="nama"
-          required
-          placeholder="nama produk"
-          class="border border-pink-200 rounded-xl px-3 py-2 md:col-span-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
-        />
-        <input
-          id="harga"
-          type="number"
-          min="0"
-          required
-          placeholder="harga (IDR)"
-          class="border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
-        />
-        <input
-          id="stok"
-          type="number"
-          min="0"
-          required
-          placeholder="stok"
-          class="border border-pink-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
-        />
-        <input
-          id="foto_url"
-          placeholder="foto url (opsional)"
-          class="border border-pink-200 rounded-xl px-3 py-2 md:col-span-2 focus:outline-none focus:ring-2 focus:ring-pink-400"
-        />
-        <input
-          id="deskripsi"
-          placeholder="deskripsi produk"
-          class="border border-pink-200 rounded-xl px-3 py-2 md:col-span-4 focus:outline-none focus:ring-2 focus:ring-pink-400"
-        />
-        <button
-          class="bg-pink-500 hover:bg-pink-600 text-white font-medium rounded-xl px-4 py-2 md:col-span-2 transition-all shadow-sm"
-          id="btn"
-        >
-          + tambah
-        </button>
-      </form>
+// kategori dibuat t.Optional agar tidak menolak request dari form tanpa kategori
+const Produk = t.Object({
+  nama: t.String({ minLength: 1 }),
+  kategori: t.Optional(t.String()),
+  harga: t.Number({ minimum: 0 }),
+  stok: t.Integer({ minimum: 0 }),
+  deskripsi: t.Optional(t.String()),
+  foto_url: t.Optional(t.String()),
+});
 
-      <!-- BAR PILIHAN MATA UANG -->
-      <div class="flex justify-between items-center mb-4 px-1">
-        <h2 class="text-lg font-bold text-pink-800">Daftar Produk</h2>
-        <div class="flex items-center gap-2 bg-white px-3 py-1.5 rounded-xl shadow-sm border border-pink-100">
-          <label for="currency" class="text-xs font-semibold text-pink-600">Mata Uang:</label>
-          <select id="currency" onchange="load()" class="bg-transparent text-sm font-bold text-pink-800 focus:outline-none cursor-pointer">
-            <option value="IDR">IDR (Rupiah)</option>
-            <option value="EUR">EUR (Euro €)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- GRID PRODUK -->
-      <div id="grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"></div>
-
-    </main>
-
-    <script>
-      let editId = null;
-      const grid = document.getElementById("grid");
-      const f = document.getElementById("f");
-      const btn = document.getElementById("btn");
-
-      const KURS_EUR = 17000;
-
-      function formatHarga(nilai) {
-        const selectedCurrency = document.getElementById("currency") ? document.getElementById("currency").value : "IDR";
-        
-        if (selectedCurrency === "EUR") {
-          const eurValue = nilai / KURS_EUR;
-          return new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" }).format(eurValue);
-        }
-        
-        return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(nilai);
-      }
-
-      async function load() {
-        try {
-          const res = await fetch("/api/products");
-          const d = await res.json();
-          grid.innerHTML = d
-            .map(
-              (p) => `
-            <div class="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
-              <div>
-                <img
-                  src="${p.foto_url || "https://picsum.photos/seed/" + p.id + "/400/400"}"
-                  class="h-44 w-full object-cover"
-                  alt="${p.nama}"
-                />
-                <div class="p-4">
-                  <h3 class="font-bold text-pink-950 text-base">${p.nama}</h3>
-                  
-                  <div class="flex items-center justify-between mt-2 mb-1">
-                    <span class="text-sm font-extrabold text-pink-600">${formatHarga(p.harga)}</span>
-                    <span class="text-xs text-gray-500 font-medium">stok: ${p.stok}</span>
-                  </div>
-
-                  <p class="text-xs text-gray-500 line-clamp-2 mt-1">${p.deskripsi || "-"}</p>
-                </div>
-              </div>
-
-              <div class="p-3 pt-0 flex gap-1.5">
-                <button onclick="edit(${p.id})" class="flex-1 bg-fuchsia-50 hover:bg-fuchsia-100 text-fuchsia-700 text-xs font-semibold rounded-lg py-1.5 transition">edit</button>
-                <button onclick="del(${p.id})" class="flex-1 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg py-1.5 transition">hapus</button>
-                <a href="/products/${p.id}" class="flex-1 bg-pink-50 hover:bg-pink-100 text-pink-700 text-xs font-semibold rounded-lg py-1.5 text-center no-underline transition">detail</a>
-              </div>
-            </div>
-          `
-            )
-            .join("");
-        } catch (err) {
-          console.error("Gagal memuat produk:", err);
-        }
-      }
-
-      async function edit(id) {
-        const p = await (await fetch("/api/products/" + id)).json();
-        editId = id;
-        nama.value = p.nama;
-        harga.value = p.harga;
-        stok.value = p.stok;
-        deskripsi.value = p.deskripsi || "";
-        foto_url.value = p.foto_url || "";
-        btn.textContent = "💾 simpan";
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      }
-
-      async function del(id) {
-        if (!confirm("hapus produk ini?")) return;
-        await fetch("/api/products/" + id, { method: "DELETE" });
-        load();
-      }
-
-      f.onsubmit = async (e) => {
-        e.preventDefault();
-        const body = {
-          nama: nama.value,
-          kategori: "Aksesoris", // Default otomatis agar backend/database tidak menolak
-          harga: Number(harga.value),
-          stok: Number(stok.value),
-          deskripsi: deskripsi.value,
-          foto_url: foto_url.value,
-        };
-        
-        await fetch(editId ? "/api/products/" + editId : "/api/products", {
-          method: editId ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-
-        editId = null;
-        btn.textContent = "+ tambah";
-        f.reset();
-        load();
-      };
-
-      load();
-    </script>
-  </body>
-</html>
+new Elysia()
+  .get("/", ({ set }) => {
+    set.headers["content-type"] = "text/html; charset=utf-8";
+    return Bun.file("public/index.html").text();
+  })
+  .get("/products/:id", async ({ params, status }) => {
+    const r = await db.select().from(products).where(eq(products.id, Number(params.id)));
+    const p = r[0];
+    if (!p) return status(404, { error: "tidak ketemu" });
+    let html = await Bun.file("public/detail.html").text();
+    html = html.replaceAll("{{id}}", String(p.id));
+    html = html.replaceAll("{{nama}}", p.nama);
+    html = html.replaceAll("{{kategori}}", p.kategori || "Aksesoris");
+    html = html.replaceAll("{{harga}}", Number(p.harga).toLocaleString("id-ID"));
+    html = html.replaceAll("{{stok}}", String(p.stok));
+    html = html.replaceAll("{{deskripsi}}", p.deskripsi || "");
+    html = html.replaceAll("{{foto_url}}", p.foto_url || "");
+    return new Response(html, {
+      headers: { "content-type": "text/html; charset=utf-8" },
+    });
+  })
+  .get("/api/products", () => db.select().from(products))
+  .get("/api/products/:id", ({ params, status }) =>
+    db.select().from(products).where(eq(products.id, Number(params.id)))
+      .then((r) => (r[0] ? r[0] : status(404, { error: "tidak ketemu" })))
+  )
+  .post("/api/products", ({ body }) => {
+    const payload = { ...body, kategori: body.kategori || "Aksesoris" };
+    return db.insert(products).values(payload).returning().then((r) => r[0]);
+  }, { body: Produk })
+  .put("/api/products/:id", ({ params, body }) => {
+    const payload = { ...body, kategori: body.kategori || "Aksesoris" };
+    return db.update(products).set(payload).where(eq(products.id, Number(params.id))).returning().then((r) => r[0]);
+  }, { body: Produk })
+  .delete("/api/products/:id", ({ params }) =>
+    db.delete(products).where(eq(products.id, Number(params.id))).returning().then((r) => ({ ok: r.length > 0 })),
+  )
+  .listen(3000, () => console.log("🎀 http://localhost:3000"));
